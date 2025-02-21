@@ -1,44 +1,28 @@
 import streamlit as st
-import zipfile
 import os
-from io import BytesIO
 from PIL import Image, ImageEnhance
 
-# Definindo o tema escuro
-st.set_page_config(page_title="SamurAI", page_icon="🏯", layout="wide")
+# Caminho do diretório (modifique para o caminho correto)
+image_directory = "C:/caminho/para/sua/pasta"  # Exemplo no Windows
+# image_directory = "/caminho/para/sua/pasta"  # Exemplo no Linux/macOS
 
-st.title("SamurAI - Upload de Pasta")
+st.title("SamurAI - Visualizador de Imagens")
 
-# Barra lateral com opções e edição de imagem
-with st.sidebar:
-    st.header("Opções")
-    show_files = st.checkbox("Mostrar arquivos extraídos")
-    selected_file = None
+# Verifica se o diretório existe
+if not os.path.exists(image_directory):
+    st.error("Diretório não encontrado! Verifique o caminho.")
+else:
+    # Lista todas as imagens na pasta
+    image_files = [f for f in os.listdir(image_directory) if f.lower().endswith(('png', 'jpg', 'jpeg'))]
 
-uploaded_file = st.file_uploader("Faça upload de um arquivo ZIP contendo a pasta com as imagens", type=["zip"])
+    if not image_files:
+        st.warning("Nenhuma imagem encontrada na pasta.")
+    else:
+        # Criar um seletor de imagem na barra lateral
+        selected_image = st.sidebar.selectbox("Escolha uma imagem", image_files)
 
-if uploaded_file is not None:
-    st.write("Arquivo recebido:", uploaded_file.name)
-    
-    # Lendo o arquivo ZIP na memória
-    with zipfile.ZipFile(BytesIO(uploaded_file.read()), "r") as zip_ref:
-        extract_path = "uploaded_folder"
-        zip_ref.extractall(extract_path)  # Extrai os arquivos para uma pasta temporária
-        
-        # Listar os arquivos extraídos
-        image_files = [f for f in os.listdir(extract_path) if f.lower().endswith(('png', 'jpg', 'jpeg'))]
-
-        if show_files:
-            st.sidebar.write("Arquivos extraídos:")
-            for file in image_files:
-                st.sidebar.write(file)
-
-        # Permitir que o usuário selecione um arquivo
-        if image_files:
-            selected_file = st.sidebar.selectbox("Escolha uma imagem para editar", image_files)
-
-        if selected_file:
-            image_path = os.path.join(extract_path, selected_file)
+        if selected_image:
+            image_path = os.path.join(image_directory, selected_image)
             image = Image.open(image_path)
 
             # Barra lateral para edição da imagem
@@ -48,14 +32,16 @@ if uploaded_file is not None:
                 contrast = st.slider("Contraste", 0.5, 2.0, 1.0)
                 sharpness = st.slider("Nitidez", 0.5, 2.0, 1.0)
 
-            # Aplicar ajustes na imagem
+            # Aplicar ajustes
             edited_image = ImageEnhance.Brightness(image).enhance(brightness)
             edited_image = ImageEnhance.Contrast(edited_image).enhance(contrast)
             edited_image = ImageEnhance.Sharpness(edited_image).enhance(sharpness)
 
-            # Exibir imagens lado a lado
+            # Exibir a imagem original e a editada
             col1, col2 = st.columns(2)
             with col1:
-                st.image(image, caption="Original", use_container_width=True)
+                st.image(image, caption="Original", use_column_width=True)
             with col2:
-                st.image(edited_image, caption="Editada", use_container_width=True)
+                st.image(edited_image, caption="Editada", use_column_width=True)
+
+            st.write(f"Exibindo: {selected_image}")
