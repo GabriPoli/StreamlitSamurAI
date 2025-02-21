@@ -5,7 +5,7 @@ from io import BytesIO
 from PIL import Image, ImageEnhance
 
 # Definindo o tema escuro
-st.set_page_config(page_title="Tema Escuro", page_icon="🏯", layout="wide")
+st.set_page_config(page_title="SamurAI", page_icon="🏯", layout="wide")
 
 st.title("SamurAI - Upload de Pasta")
 
