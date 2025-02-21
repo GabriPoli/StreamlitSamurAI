@@ -15,7 +15,7 @@ with st.sidebar:
     show_files = st.checkbox("Mostrar arquivos extraídos")
     selected_file = None
 
-uploaded_file = st.file_uploader("Faça upload de um arquivo ZIP contendo a pasta", type=["zip"])
+uploaded_file = st.file_uploader("Faça upload de um arquivo ZIP contendo a pasta com as imagens", type=["zip"])
 
 if uploaded_file is not None:
     st.write("Arquivo recebido:", uploaded_file.name)
@@ -35,7 +35,7 @@ if uploaded_file is not None:
 
         # Permitir que o usuário selecione um arquivo
         if image_files:
-            selected_file = st.sidebar.selectbox("Escolha uma imagem", image_files)
+            selected_file = st.sidebar.selectbox("Escolha uma imagem para editar", image_files)
 
         if selected_file:
             image_path = os.path.join(extract_path, selected_file)
