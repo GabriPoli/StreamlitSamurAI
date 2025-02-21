@@ -1,5 +1,5 @@
 import streamlit as st
 
-st.title['Nome do Aplicativo']
+st.title("Nome do Aplicativo")
 
-st.write['Ola Mundo']
+st.write("Ola Mundo")
