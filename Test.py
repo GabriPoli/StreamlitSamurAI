@@ -6,14 +6,11 @@ from PIL import Image, ImageEnhance
 
 st.title("SamurAI - Upload de Pasta")
 
-# Barra lateral com controles de edição de imagem
+# Barra lateral com opções e edição de imagem
 with st.sidebar:
     st.header("Opções")
     show_files = st.checkbox("Mostrar arquivos extraídos")
-    st.header("Edição de Imagem")
-    brightness = st.slider("Brilho", 0.5, 2.0, 1.0)
-    contrast = st.slider("Contraste", 0.5, 2.0, 1.0)
-    sharpness = st.slider("Nitidez", 0.5, 2.0, 1.0)
+    selected_file = None
 
 uploaded_file = st.file_uploader("Faça upload de um arquivo ZIP contendo a pasta", type=["zip"])
 
@@ -25,28 +22,37 @@ if uploaded_file is not None:
         extract_path = "uploaded_folder"
         zip_ref.extractall(extract_path)  # Extrai os arquivos para uma pasta temporária
         
-        # Lista os arquivos extraídos se o usuário marcar a opção na barra lateral
-        if show_files:
-            st.sidebar.write("Arquivos extraídos:")
-            for root, dirs, files in os.walk(extract_path):
-                for file in files:
-                    st.sidebar.write(os.path.join(root, file))
-
-        # Exibir e editar a primeira imagem encontrada no ZIP
+        # Listar os arquivos extraídos
         image_files = [f for f in os.listdir(extract_path) if f.lower().endswith(('png', 'jpg', 'jpeg'))]
 
+        if show_files:
+            st.sidebar.write("Arquivos extraídos:")
+            for file in image_files:
+                st.sidebar.write(file)
+
+        # Permitir que o usuário selecione um arquivo
         if image_files:
-            image_path = os.path.join(extract_path, image_files[0])
+            selected_file = st.sidebar.selectbox("Escolha uma imagem", image_files)
+
+        if selected_file:
+            image_path = os.path.join(extract_path, selected_file)
             image = Image.open(image_path)
 
-            # Aplicar os ajustes de edição
-            image = ImageEnhance.Brightness(image).enhance(brightness)
-            image = ImageEnhance.Contrast(image).enhance(contrast)
-            image = ImageEnhance.Sharpness(image).enhance(sharpness)
+            # Barra lateral para edição da imagem
+            with st.sidebar:
+                st.header("Edição de Imagem")
+                brightness = st.slider("Brilho", 0.5, 2.0, 1.0)
+                contrast = st.slider("Contraste", 0.5, 2.0, 1.0)
+                sharpness = st.slider("Nitidez", 0.5, 2.0, 1.0)
 
-            # Exibir a imagem original e a editada
+            # Aplicar ajustes na imagem
+            edited_image = ImageEnhance.Brightness(image).enhance(brightness)
+            edited_image = ImageEnhance.Contrast(edited_image).enhance(contrast)
+            edited_image = ImageEnhance.Sharpness(edited_image).enhance(sharpness)
+
+            # Exibir imagens lado a lado
             col1, col2 = st.columns(2)
             with col1:
-                st.image(Image.open(image_path), caption="Original", use_column_width=True)
+                st.image(image, caption="Original", use_column_width=True)
             with col2:
-                st.image(image, caption="Editada", use_column_width=True)
+                st.image(edited_image, caption="Editada", use_column_width=True)
