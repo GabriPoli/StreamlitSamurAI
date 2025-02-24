@@ -1,47 +1,46 @@
 import streamlit as st
 import os
-from PIL import Image, ImageEnhance
+from PIL import Image
+import tkinter as tk
+from tkinter import filedialog
 
-# Caminho do diretório (modifique para o caminho correto)
-image_directory = "C:/caminho/para/sua/pasta"  # Exemplo no Windows
-# image_directory = "/caminho/para/sua/pasta"  # Exemplo no Linux/macOS
+# Função para selecionar a pasta
+def select_folder():
+    root = tk.Tk()
+    root.withdraw()  # Oculta a janela principal do Tkinter
+    folder_selected = filedialog.askdirectory()  # Abre o seletor de pasta
+    return folder_selected
 
-st.title("SamurAI - Visualizador de Imagens")
+# Botão para selecionar a pasta
+if st.button("Selecionar Pasta"):
+    folder_path = select_folder()
+    st.session_state.folder_path = folder_path  # Salva na sessão
 
-# Verifica se o diretório existe
-if not os.path.exists(image_directory):
-    st.error("Diretório não encontrado! Verifique o caminho.")
+# Exibir o caminho da pasta
+folder_path = st.session_state.get("folder_path", "")
+
+if folder_path:
+    st.success(f"Pasta selecionada: {folder_path}")
+
+    # Listar imagens da pasta
+    def load_images(folder):
+        return [os.path.join(folder, f) for f in os.listdir(folder) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+
+    images = load_images(folder_path)
+
+    # Exibir miniaturas
+    cols = st.columns(4)
+    for i, img_path in enumerate(images):
+        with cols[i % 4]:
+            img = Image.open(img_path)
+            img.thumbnail((150, 150))
+            if st.button(f"🔍 {os.path.basename(img_path)}", key=f"btn_{i}"):
+                st.session_state.selected_image = img_path
+
+    # Exibir imagem ampliada
+    if st.session_state.get("selected_image"):
+        st.image(st.session_state.selected_image, caption="Imagem Ampliada", use_column_width=True)
+        if st.button("Fechar"):
+            st.session_state.selected_image = None
 else:
-    # Lista todas as imagens na pasta
-    image_files = [f for f in os.listdir(image_directory) if f.lower().endswith(('png', 'jpg', 'jpeg'))]
-
-    if not image_files:
-        st.warning("Nenhuma imagem encontrada na pasta.")
-    else:
-        # Criar um seletor de imagem na barra lateral
-        selected_image = st.sidebar.selectbox("Escolha uma imagem", image_files)
-
-        if selected_image:
-            image_path = os.path.join(image_directory, selected_image)
-            image = Image.open(image_path)
-
-            # Barra lateral para edição da imagem
-            with st.sidebar:
-                st.header("Edição de Imagem")
-                brightness = st.slider("Brilho", 0.5, 2.0, 1.0)
-                contrast = st.slider("Contraste", 0.5, 2.0, 1.0)
-                sharpness = st.slider("Nitidez", 0.5, 2.0, 1.0)
-
-            # Aplicar ajustes
-            edited_image = ImageEnhance.Brightness(image).enhance(brightness)
-            edited_image = ImageEnhance.Contrast(edited_image).enhance(contrast)
-            edited_image = ImageEnhance.Sharpness(edited_image).enhance(sharpness)
-
-            # Exibir a imagem original e a editada
-            col1, col2 = st.columns(2)
-            with col1:
-                st.image(image, caption="Original", use_column_width=True)
-            with col2:
-                st.image(edited_image, caption="Editada", use_column_width=True)
-
-            st.write(f"Exibindo: {selected_image}")
+    st.warning("Selecione uma pasta para visualizar as imagens.")
